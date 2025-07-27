@@ -1,0 +1,27 @@
+TASK 1:
+1. complete the Literary Detective scenario with your home text	
+2. calculate the percentage of common words ("the"，"a"， "of", "it") in your home text
+3. Compare your results with 'Heart of Darkness'(13.7% total)
+4. Be ready to discuss any significant differences you find!
+--------------------------------------------------------
+install.packages("stringi")
+install.packages("readtext")
+install.packages("quanteda")
+library(stringi)
+library(quanteda)
+library(readtext)
+
+my_novel <- texts(readtext("Fran.txt",encoding = "UTF-8"))
+my_novel_lower <- char_tolower(my_novel)
+my_novel_tokens<-tokens(my_novel_lower,remove_punct = TRUE) %>% as.character()
+
+a<-length(my_novel_tokens[which(my_novel_tokens=="a")])
+the<-length(my_novel_tokens[which(my_novel_tokens=="the")])
+of<-length(my_novel_tokens[which(my_novel_tokens=="of")])
+it<-length(my_novel_tokens[which(my_novel_tokens=="it")])
+
+sum<-a+the+of+it
+all<-length(my_novel_tokens)
+per<-sum/all
+
+print(sprintf("the percentage of common words (the,a,of,it) in Frankenstein is %f .", per))

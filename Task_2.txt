@@ -1,0 +1,35 @@
+TASK 2:
+1. Find the top five two-word collocations (after stopwords have been removed) for your home text (for frequency and z-score).
+2. Find the six most used (that is, "most frequent") words (after stopwords have been removed) for your home text.
+3. Plot the frequencies of the twenty most frequently used words (after stopwords have been removed) for your home text using ggplot()
+--------------------------------------------------------
+install.packages("stringi")
+install.packages("readtext")
+install.packages("quanteda")
+library(stringi)
+library(quanteda)
+library(readtext)
+
+my_novel <- texts(readtext("Fran.txt",encoding = "UTF-8"))
+my_novel_lower <- char_tolower(my_novel)
+my_novel_tokens<-tokens(my_novel_lower,remove_punct = TRUE)
+
+install.packages("quanteda.textstats")
+install.packages("ggplot2")
+library(quanteda.textstats)
+library(ggplot2)
+
+#Task2_1
+str(my_novel_tokens)
+my_tokens_st <- tokens_remove(my_novel_tokens, stopwords("english"))
+my_2_coll <- textstat_collocations(my_tokens_st, min_count = 5)
+head(my_2_coll, 5)
+
+#Task2_2
+my_dfm <- dfm(my_tokens_st)
+my_freq_6<- textstat_frequency(my_dfm, n = 6)
+my_freq_6
+
+#Task2_3
+my_freq <- textstat_frequency(my_dfm, n = 20)
+ggplot(my_freq, aes(x = feature, y = frequency)) +geom_point() +theme(axis.text.x = element_text(angle = 45, hjust = 1))
