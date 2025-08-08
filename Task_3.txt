@@ -1,0 +1,32 @@
+Task_3
+1. Perform a KWIC analysis on three important words in your home text 
+2. create a lexical dispersion plot comparing these words
+3. Break your text into 400-word chunks and perform TF-IDF analysis
+4. Create a word cloud showing the top 100 words
+5. Be prepared to discuss any patterns you notice!
+-------------------------------------------------------------------------------------
+install.packages("stringi")
+install.packages("readtext")
+install.packages("quanteda")
+library(stringi)
+library(quanteda)
+library(readtext)
+install.packages("quanteda.textstats")
+install.packages("ggplot2")
+library(quanteda.textstats)
+library(ggplot2)
+
+my_novel <- texts(readtext("Fran.txt",encoding = "UTF-8"))
+my_clean<-tokens(my_novel,remove_punct = TRUE)%>% tokens_tolower()%>%tokens_remove(stopwords("english"))
+my_chunks<-tokens_chunk(my_clean,size=400)
+my_chunks_dfm<-dfm(my_chunks)
+my_dfm<-dfm(my_clean)
+
+my_tfidf<-dfm_tfidf(my_chunks_dfm)
+topfeatures(my_tfidf,n=5,groups=docnames(my_tfidf))
+my_3_kwic<-kwic(my_novel_tokens,pattern=c("lake","stranger","valley"),window=5)
+tplot <- textplot_xray(my_3_kwic)
+tplot + aes(color = keyword) + scale_color_manual(values = c('blue', 'purple', 'red'))
+
+set.seed(123)
+textplot_wordcloud(my_dfm,min_count = 5,max_words = 100,color="brown")

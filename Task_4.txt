@@ -1,0 +1,178 @@
+Task_4
+Run the topic modeling algorithm on your home text and be ready to report something interesting to the class!
+------------------------------------------------------------------------------------------------------------------------------------
+> install.packages("quanteda")
+> install.packages("readtext")
+> install.packages("topicmodels")
+> install.packages("wordcloud")
+> install.packages("LDAvis")
+
+> library(quanteda)
+> library(readtext)
+> library(topicmodels)
+> library(wordcloud)
+> library(LDAvis)
+
+> FRAN <- texts(readtext("fran.txt", encoding = "UTF-8"))
+> my_clean <- tokens(FRAN, remove_punct = TRUE) %>%
++     tokens_tolower() %>%
++     tokens_remove(stopwords("english"))
+> my_chunks <- tokens_chunk(my_clean, size = 400)
+> my_dfm <- dfm(my_chunks)
+> my_dtm <- convert(my_dfm, to = "topicmodels")
+> find_optimal_k <- function(dtm, k_range = seq(5, 20, by = 1)) {
++     logLik_scores <- numeric(length(k_range))
++     for (i in seq_along(k_range)) {
++         k <- k_range[i]
++         cat(sprintf("Testing k = %d\n", k))
++         model <- LDA(dtm, method = "Gibbs", k = k, control = list(seed = 1))
++         logLik_scores[i] <- logLik(model)
++     }
++     plot(k_range, logLik_scores, type = "b",
++          xlab = "Number of Topics (k)",
++          ylab = "Log-Likelihood",
++          main = "Topic Model Log-Likelihood by k")
++     results <- data.frame(
++         k = k_range,
++         logLik = logLik_scores)
++     return(results)
++ }
+
+> results <- find_optimal_k(my_dtm)
+Testing k = 5
+Testing k = 6
+Testing k = 7
+Testing k = 8
+Testing k = 9
+Testing k = 10
+Testing k = 11
+Testing k = 12
+Testing k = 13
+Testing k = 14
+Testing k = 15
+Testing k = 16
+Testing k = 17
+Testing k = 18
+Testing k = 19
+Testing k = 20
+
+> print(results)
+     k    logLik
+1   5 -258553.4
+2   6 -256304.4
+3   7 -255957.2
+4   8 -254882.2
+5   9 -254140.3
+6  10 -253223.1
+7  11 -252809.9
+8  12 -252217.9
+9  13 -252026.3
+10 14 -252334.5
+11 15 -253016.7
+12 16 -252974.3
+13 17 -252567.6
+14 18 -253752.2
+15 19 -253450.1
+16 20 -252983.4
+
+#The best K is 13
+
+> set.seed(42)
+> my_lda <- LDA(my_dtm, k = 13)
+
+> topic_terms <- terms(hod_lda, 10)	
+> topic_terms
+      Topic 1   Topic 2   Topic 3   Topic 4  Topic 5      Topic 6    
+ [1,] "may"     "man"     "every"   "yet"    "man"        "felix"    
+ [2,] "yet"     "old"     "upon"    "ice"    "saw"        "said"     
+ [3,] "towards" "one"     "now"     "now"    "found"      "father"   
+ [4,] "one"     "cottage" "father"  "one"    "one"        "day"      
+ [5,] "friend"  "young"   "one"     "sledge" "might"      "safie"    
+ [6,] "return"  "may"     "might"   "heart"  "now"        "cottage"  
+ [7,] "life"    "yet"     "day"     "said"   "place"      "now"      
+ [8,] "now"     "little"  "mind"    "soon"   "first"      "one"      
+ [9,] "men"     "first"   "felt"    "thus"   "upon"       "elizabeth"
+[10,] "every"   "now"     "thought" "sea"    "appearance" "saw"      
+      Topic 7    Topic 8 Topic 9     Topic 10  Topic 11    Topic 12  Topic 13
+ [1,] "might"    "shall" "one"       "one"     "upon"      "first"   "life"  
+ [2,] "one"      "man"   "yet"       "justine" "yet"       "might"   "now"   
+ [3,] "father"   "now"   "father"    "poor"    "sometimes" "life"    "one"   
+ [4,] "felix"    "can"   "life"      "now"     "father"    "yet"     "eyes"  
+ [5,] "stranger" "one"   "us"        "felt"    "one"       "like"    "upon"  
+ [6,] "man"      "yet"   "elizabeth" "time"    "elizabeth" "now"     "may"   
+ [7,] "yet"      "ever"  "love"      "eyes"    "among"     "william" "first" 
+ [8,] "every"    "feel"  "made"      "upon"    "even"      "one"     "long"  
+ [9,] "became"   "must"  "shall"     "father"  "man"       "lake"    "said"  
+[10,] "whose"    "upon"  "said"      "night"   "found"     "words"   "dear" 
+
+#Topic named by GPT
+#Topic 1: "Human Interaction"
+#keyword: man, friend, life, every, one
+#Topic 2: "Family and Home"
+#keyword: man, cottage, young, father, one
+#Topic 3: "Time and Reflection"
+#keyword: every, now, father, day, thought
+#Topic 4: "Journey and Nature"
+#keyword:  yet, ice, sledge, sea, one
+#Topic 5: "Discovery and Observation"
+#keyword: man, saw, found, place, appearance
+#Topic 6: "Family and Relationships"
+#keyword: felix, father, day, cottage, elizabeth
+#Topic 7: "Uncertainty and Possibility"
+#keyword: might, one, father, felix, stranger
+#Topic 8: "Action and Decision"
+#keyword: shall, man, now, can, one
+#Topic 9: "Emotion and Connection"
+#keyword: one, yet, father, life, love
+#Topic 10: "Justice and Society"
+#keyword: one, justine, poor, felt, father
+#Topic 11: "Time and Family"
+#keyword: upon, yet, father, elizabeth, one
+#Topic 12: "Nature and Observation"
+#keyword: first, might, life, yet, lake
+#Topic 13: "Life and Emotion"
+#keyword: life, now, one, eyes, said
+
+# Define topic 7&8 to examine, which is a contrast between Topic 7: "Uncertainty and Possibility" and Topic 8: "Action and Decision".
+
+> topic=7
+words = posterior(my_lda)$terms[topic, ]
+> topwords = head(sort(words, decreasing = TRUE), n = 50)
+> set.seed(42)
+> wordcloud(names(topwords), topwords, random.order = FALSE)
+#see jpg Task_4_1
+
+> topic=7
+> topic.docs = posterior(my_lda)$topics[, topic]
+> head(topic.docs)
+  fran.txt.1           fran.txt.2         fran.txt.3        fran.txt.4        fran.txt.5        fran.txt.6 
+4.102457e-05 4.102457e-05 4.102457e-05 4.102457e-05 4.102457e-05 4.102457e-05 
+> topic.docs = sort(topic.docs, decreasing = TRUE)
+> head(topic.docs)
+fran.txt.38 fran.txt.56 fran.txt.20 fran.txt.69 fran.txt.52 fran.txt.19 
+  0.9995077   0.9995077   0.9995077   0.9995077   0.9995077   0.9995077 
+
+> topic.docs = posterior(my_lda)$topics[, 7]
+> plot(topic.docs, xlab = "section number", ylab = "topic prevalence")
+> topic.docs = posterior(my_lda)$topics[, 7]
+> plot(topic.docs, xlab = "section number", ylab = "topic prevalence")
+> plot(topic.docs, type = "h", col = "red", xlab = "section number", ylab = "topic prevalence")
+> lines(topic.docs, type = "l", col = "blue")
+#see jpg Task_4_2
+#see jpg Task_4_3
+#see jpg Task_4_4
+
+> topic.docs.1 = posterior(my_lda)$topics[, 7]
+> topic.docs.2 = posterior(my_lda)$topics[, 8]
+> plot(topic.docs.1, type = "l", col = "red", xlab = "section number", ylab = "topic prevalence")
+> lines(topic.docs.2, type = "l", col = "blue")
+#see jpg Task_4_5
+
+-----------------------------------------------------------------------------------------------------------------
+
+Report
+
+In Mary Shelley's "Frankenstein," the narrative initially delves into the theme of "Action and Decision" (Topic 8), characterized by keywords such as "shall," "man," "now," "can," and "one." This theme reflects the decisive actions and choices made by the characters, particularly Victor Frankenstein, as he embarks on his ambitious quest to create life. The prevalence of this theme at the beginning of the novel underscores the proactive and determined mindset that drives the story forward.
+As the narrative progresses, there is a notable shift to the theme of "Uncertainty and Possibility" (Topic 7), highlighted by keywords like "might," "one," "father," "may," and "stranger." This theme captures the sense of ambiguity and potential that permeates the story, especially as the consequences of Victor's actions begin to unfold. 
+The interplay between these two themes—action and uncertainty—creates a dynamic tension that drives the plot. The red lines (Topic 7) and blue lines (Topic 8) on the graph represent this alternating presence, with Topic 8 often preceding Topic 7, suggesting that decisive actions are frequently followed by moments of doubt and reflection.
+Ultimately, the novel concludes with a return to the theme of "Action and Decision" (Topic 8), reinforcing the cyclical nature of the characters' struggles and the persistent consequences of their choices. This pattern underscores the novel's exploration of the ethical and moral implications of human ambition, as well as the inevitable uncertainties that accompany the pursuit of knowledge and power.

@@ -1,0 +1,98 @@
+Task_5
+Conduct a word embedding on your home text. 
+Produce a map that shows the relative location of three word clusters!
+-----------------------------------------------------------------------------------
+
+> install.packages("uwot")
+> install.packages("text2vec")
+> install.packages("ggplot2")
+> install.packages("quanteda")
+> install.packages("quanteda.textstats")
+> install.packages("readtext")
+
+> library(uwot)
+> library(text2vec)
+> library(ggplot2)
+> library(quanteda)
+> library(quanteda.textstats)
+> library(readtext)
+
+> my_tokens<-tokens(my_novel,remove_punct = TRUE)%>% tokens_tolower()%>%tokens_remove(stopwords("english"))
+> my_feats<-dfm(my_tokens,verbose = TRUE)
+> feats<-dfm(my_tokens,verbose = TRUE) %>% dfm_trim(min_termfreq = 5) %>% featnames()
+> my_tokens<-tokens_select(my_tokens,feats,padding=TRUE)
+> my_fcm<-fcm(my_tokens,context="window",count="weighted",weights=1/(1:5),tri=TRUE)
+> glove_model<-GlobalVectors$new(rank = 50,x_max=10)
+> word_vectors_main<-glove_model$fit_transform(my_fcm,n_iter=20)
+
+INFO  [11:39:00.441] epoch 1, loss 0.0985
+INFO  [11:39:00.509] epoch 2, loss 0.0590
+INFO  [11:39:00.541] epoch 3, loss 0.0477
+INFO  [11:39:00.565] epoch 4, loss 0.0411
+INFO  [11:39:00.586] epoch 5, loss 0.0365
+INFO  [11:39:00.608] epoch 6, loss 0.0329
+INFO  [11:39:00.636] epoch 7, loss 0.0301
+INFO  [11:39:00.672] epoch 8, loss 0.0277
+INFO  [11:39:00.726] epoch 9, loss 0.0257
+INFO  [11:39:00.767] epoch 10, loss 0.0240
+INFO  [11:39:00.803] epoch 11, loss 0.0226
+INFO  [11:39:00.834] epoch 12, loss 0.0213
+INFO  [11:39:00.865] epoch 13, loss 0.0201
+INFO  [11:39:00.889] epoch 14, loss 0.0191
+INFO  [11:39:00.914] epoch 15, loss 0.0182
+INFO  [11:39:00.939] epoch 16, loss 0.0174
+INFO  [11:39:00.965] epoch 17, loss 0.0166
+INFO  [11:39:00.992] epoch 18, loss 0.0160
+INFO  [11:39:01.012] epoch 19, loss 0.0154
+INFO  [11:39:01.041] epoch 20, loss 0.0148
+
+> word_vectors_context<-glove_model$components
+> word_vectors<-word_vectors_main+t(word_vectors_context)
+> fran_vec<-word_vectors["frankenstein",,drop=FALSE]
+> cos_sim<-textstat_simil(x=as.dfm(word_vectors),y=as.dfm(fran_vec),margin="documents",method="cosine")
+> head(sort(cos_sim[,1],decreasing=TRUE),10)
+frankenstein    exclaimed        shape          daily            streets           oh 
+   1.0000000    0.4839036    0.4462931    0.4312946    0.4266421    0.4228177 
+        dear      appearance      changed      restore 
+   0.4146026    0.4003810    0.3927012    0.3863959 
+
+> fran<-word_vectors["man",,drop=FALSE]+word_vectors["monster",,drop=FALSE]
+> cos_sim<-textstat_simil(x=as.dfm(word_vectors),y=as.dfm(fran),method="cosine")
+
+> head(sort(cos_sim[,1],decreasing=TRUE),10)
+          man         monster             old             cried         wonderful 
+    0.7692100     0.6806641     0.5593966     0.4519999     0.4494888 
+neighbourhood   companion  apparition     miserable         blind 
+    0.4357770     0.4308408     0.3974486     0.3909032     0.3867463 
+
+> keyword_1 <- "man"
+> similarities_1 <- sim2(x = word_vectors, y = word_vectors[keyword_1, , drop = FALSE], method = "cosine")
+> keyword_2 <- "monster"
+> similarities_2 <- sim2(x = word_vectors, y = word_vectors[keyword_2, , drop = FALSE], method = "cosine")
+> keyword_3 <- "frankenstein"
+> similarities_3 <- sim2(x = word_vectors, y = word_vectors[keyword_3, , drop = FALSE], method = "cosine")
+
+> closest_words_1 <- names(sort(similarities_1[,1], decreasing = TRUE))[2:11]
+> closest_words_2 <- names(sort(similarities_2[,1], decreasing = TRUE))[2:11]
+> closest_words_3 <- names(sort(similarities_3[,1], decreasing = TRUE))[2:11]
+
+> my_umap_plot_data$highlight <- "other"
+> my_umap_plot_data$highlight[my_umap_plot_data$word == keyword_1] <- "keyword_1"
+> my_umap_plot_data$highlight[my_umap_plot_data$word %in% closest_words_1] <- "cluster_1"
+> my_umap_plot_data$highlight[my_umap_plot_data$word == keyword_2] <- "keyword_2"
+> my_umap_plot_data$highlight[my_umap_plot_data$word %in% closest_words_2] <- "cluster_2"
+> my_umap_plot_data$highlight[my_umap_plot_data$word == keyword_3] <- "keyword_3"
+> my_umap_plot_data$highlight[my_umap_plot_data$word %in% closest_words_3] <- "cluster_3"
+
+> ggplot(my_umap_plot_data, aes(x = v1, y = v2)) +
++     geom_point(data = subset(my_umap_plot_data, highlight == "other"), alpha = 0.5, color = "gray") +
++     geom_point(data = subset(my_umap_plot_data, highlight == "cluster_1"), color = "lightcoral", size = 3) +
++     geom_point(data = subset(my_umap_plot_data, highlight == "keyword_1"), color = "red", size = 4) +
++     geom_point(data = subset(my_umap_plot_data, highlight == "cluster_2"), color = "blue", size = 3) +
++     geom_point(data = subset(my_umap_plot_data, highlight == "keyword_2"), color = "darkblue", size = 4) +
++     geom_point(data = subset(my_umap_plot_data, highlight == "cluster_3"), color = "violet", size = 3) +
++     geom_point(data = subset(my_umap_plot_data, highlight == "keyword_3"), color = "purple", size = 4) +
++     ggrepel::geom_text_repel(data = subset(my_umap_plot_data, highlight != "other"),
++     aes(label = word), size = 3) + theme_minimal() +
++     labs(title = "The Semantic Field of Morality: Man (Red) vs. Monster (Blue) vs. Frankenstein(Purple)")
+

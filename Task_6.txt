@@ -1,0 +1,118 @@
+Task_6
+1. Clean and chunk your home text into 300-word sections. 
+2. Plot a (clear) dendrogram of the distance matrix of those sections.
+3. Produce a network graph of those sections which shows the most (semantically) "connected" section.
+4. Make a comment on the significance of the most connected section to your novel as a whole.
+--------------------------------------------------------------------------------------------------------------------------
+
+> install.packages("quanteda")
+> install.packages("readtext")
+> install.packages("quanteda.textstats")
+> install.packages("quanteda.textplots")
+
+> library(quanteda)
+> library(readtext)
+> library(quanteda.textstats)
+> library(quanteda.textplots)
+
+> FRAN <- texts(readtext("Fran.txt", encoding = "UTF-8"))
+> my_tokens <- tokens(FRAN, remove_punct = TRUE) %>%
++     tokens_tolower() %>%
++     tokens_remove(stopwords("english"))
+> my_chunks <- tokens_chunk(my_tokens, size = 300)
+> my_dfm <- dfm(my_chunks)
+> my_sim <- textstat_simil(my_dfm, method = "cosine", margin = "documents")
+> my_dist <- textstat_dist(my_dfm, margin = "documents")
+> docnames(my_dfm) <- paste0("F", 1:ndoc(my_dfm))
+> plot(hclust(as.dist(my_dist)), cex = 0.8)
+> my_dist_renamed <- textstat_dist(my_dfm)
+> plot(hclust(as.dist(my_dist_renamed)), main = "Dendrogram of Frankenstein", xlab = "Text Sections", ylab = "Distance")
+> plot(hclust(as.dist(my_dist_renamed)), cex = 0.5)
+# see plot Task_6_1
+
+> my_sim_net <- textstat_proxy(my_dfm, method = "cosine", margin = "documents")
+> textplot_network(as.fcm(my_sim_net), 
++                  min_freq = 0.99, 
++                  omit_isolated = TRUE, 
++                  edge_color = "#768aa5", 
++                  edge_alpha = 0.5, 
++                  edge_size = 1, 
++                  vertex_color = "#536174", 
++                  vertex_size = 2, 
++                  vertex_labelcolor = "#000000", 
++                  vertex_labelfont = NULL, 
++                  vertex_labelsize = 3, 
++                  offset = NULL)
+# see plot Task_6_2
+
+# the key topic is chunk 95
+> my_chunks[[95]]
+  [1] "lives"         "father"        "indeed"        "sacrifice"     "whole"         "human"         "race"         
+  [8] "conclusion"    "speech"        "convinced"     "father"        "ideas"         "deranged"      "instantly"    
+ [15] "changed"       "subject"       "conversation"  "endeavoured"   "alter"         "course"        "thoughts"     
+ [22] "wished"        "much"          "possible"      "obliterate"    "memory"        "scenes"        "taken"        
+ [29] "place"         "ireland"       "never"         "alluded"       "suffered"      "speak"         "misfortunes"  
+ [36] "time"          "passed"        "away"          "became"        "calm"          "misery"        "dwelling"     
+ [43] "heart"         "longer"        "talked"        "incoherent"    "manner"        "crimes"        "sufficient"   
+ [50] "consciousness" "utmost"        "self-violence" "curbed"        "imperious"     "voice"         "wretchedness" 
+ [57] "sometimes"     "desired"       "declare"       "whole"         "world"         "manners"       "calmer"       
+ [64] "composed"      "ever"          "since"         "journey"       "sea"           "ice"           "days"         
+ [71] "left"          "paris"         "way"           "switzerland"   "received"      "following"     "letter"       
+ [78] "elizabeth"     "dear"          "friend"        "gave"          "greatest"      "pleasure"      "receive"      
+ [85] "letter"        "uncle"         "dated"         "paris"         "longer"        "formidable"    "distance"     
+ [92] "may"           "hope"          "see"           "less"          "fortnight"     "poor"          "cousin"       
+ [99] "much"          "must"          "suffered"      "expect"        "see"           "looking"       "even"         
+[106] "ill"           "quitted"       "geneva"        "winter"        "passed"        "miserably"     "tortured"     
+[113] "anxious"       "suspense"      "yet"           "hope"          "see"           "peace"         "countenance"  
+[120] "find"          "heart"         "totally"       "void"          "comfort"       "tranquillity"  "yet"          
+[127] "fear"          "feelings"      "now"           "exist"         "made"          "miserable"     "year"         
+[134] "ago"           "even"          "perhaps"       "augmented"     "time"          "disturb"       "period"       
+[141] "many"          "misfortunes"   "weigh"         "upon"          "conversation"  "uncle"         "previous"     
+[148] "departure"     "renders"       "explanation"   "necessary"     "meet"          "explanation"   "may"          
+[155] "possibly"      "say"           "can"           "elizabeth"     "explain"       "really"        "say"          
+[162] "questions"     "answered"      "doubts"        "satisfied"     "distant"       "possible"      "may"          
+[169] "dread"         "yet"           "pleased"       "explanation"   "probability"   "case"          "dare"         
+[176] "longer"        "postpone"      "writing"       "absence"       "often"         "wished"        "express"      
+[183] "never"         "courage"       "begin"         "well"          "know"          "victor"        "union"        
+[190] "favourite"     "plan"          "parents"       "ever"          "since"         "infancy"       "told"         
+[197] "young"         "taught"        "look"          "forward"       "event"         "certainly"     "take"         
+[204] "place"         "affectionate"  "playfellows"   "childhood"     "believe"       "dear"          "valued"       
+[211] "friends"       "one"           "another"       "grew"          "older"         "brother"       "sister"       
+[218] "often"         "entertain"     "lively"        "affection"     "towards"       "without"       "desiring"     
+[225] "intimate"      "union"         "may"           "also"          "case"          "tell"          "dearest"      
+[232] "victor"        "answer"        "conjure"       "mutual"        "happiness"     "simple"        "truth—do"     
+[239] "love"          "another"       "travelled"     "spent"         "several"       "years"         "life"         
+[246] "ingolstadt"    "confess"       "friend"        "saw"           "last"          "autumn"        "unhappy"      
+[253] "flying"        "solitude"      "society"       "every"         "creature"      "help"          "supposing"    
+[260] "might"         "regret"        "connection"    "believe"       "bound"         "honour"        "fulfil"       
+[267] "wishes"        "parents"       "although"      "opposed"       "inclinations"  "false"         "reasoning"    
+[274] "confess"       "friend"        "love"          "airy"          "dreams"        "futurity"      "constant"     
+[281] "friend"        "companion"     "happiness"     "desire"        "well"          "declare"       "marriage"     
+[288] "render"        "eternally"     "miserable"     "unless"        "dictate"       "free"          "choice"       
+[295] "even"          "now"           "weep"          "think"         "borne"         "cruellest"    
+
+# Feed a unique token “postpone” into the 'kwic' function
+> kwic(tokens(FRAN), pattern = "postpone", window = 200)
+Keyword-in-context with 1 match.                  
+ [Fran.txt, 70155]
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+ fortnight. My poor cousin, how much you must have suffered! I expect to see you looking even more ill than when you quitted Geneva. This winter has been passed most miserably, tortured as I have been by anxious suspense; yet I hope to see peace in your countenance and to find that your heart is not totally void of comfort and tranquillity. “ Yet I fear that the same feelings now exist that made you so miserable a year ago, even perhaps augmented by time. I would not disturb you at this period, when so many misfortunes weigh upon you, but a conversation that I had with my uncle previous to his departure renders some explanation necessary before we meet. Explanation! You may possibly say, What can Elizabeth have to explain? If you really say this, my questions are answered and all my doubts satisfied. But you are distant from me, and it is possible that you may dread and yet be pleased with this explanation; and in a probability of this being the case, I dare not any longer
+             
+ | postpone |
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+ writing what, during your absence, I have often wished to express to you but have never had the courage to begin. “ You well know, Victor, that our union had been the favourite plan of your parents ever since our infancy. We were told this when young, and taught to look forward to it as an event that would certainly take place. We were affectionate playfellows during childhood, and, I believe, dear and valued friends to one another as we grew older. But as brother and sister often entertain a lively affection towards each other without desiring a more intimate union, may not such also be our case? Tell me, dearest Victor. Answer me, I conjure you by our mutual happiness, with simple truth—Do you not love another? “ You have travelled; you have spent several years of your life at Ingolstadt; and I confess to you, my friend, that when I saw you last autumn so unhappy, flying to solitude from the society of every creature, I could not help supposing that you might
+
+
+#The Significance of the Most Connected Section to "Frankenstein" as a Whole
+
+The most connected section, chunk 95, is a crucial part of Elizabeth's letter to Victor. It is highly significant as it encapsulates several key themes of the novel "Frankenstein."
+
+Firstly, it highlights Victor's emotional turmoil and suffering, reflecting the broader theme of pain and despair that pervades the story. Elizabeth's concern about Victor's "miserable" state and her hope for his "peace" mirror the novel's exploration of the consequences of ambition and creation.
+
+Secondly, the passage delves into the complex relationship between Victor and Elizabeth, addressing themes of love, loyalty, and familial expectations. Their planned union since childhood and Elizabeth's questioning of Victor's feelings underscore the novel's focus on human relationships and the complications that arise from them.
+
+Additionally, this section serves as a bridge between the past and present, referencing Victor's time in Ingolstadt and his withdrawal from society. This connects to the overarching theme of the dangers of overreaching human capabilities and the long-term impact of Victor's actions.
+
+In summary, this connected section captures the emotional depth, relational dynamics, and thematic concerns of "Frankenstein," making it a microcosm of the novel's central issues.
+
+
